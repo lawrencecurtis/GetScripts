@@ -50,61 +50,71 @@ import time
 time.sleep(5)
 
 # Exit codes used by NZBGet
-POSTPROCESS_SUCCESS=93
-POSTPROCESS_NONE=95
-POSTPROCESS_ERROR=94
+POSTPROCESS_SUCCESS = 93
+POSTPROCESS_NONE = 95
+POSTPROCESS_ERROR = 94
 
 host = os.environ['NZBPO_HOST']
 apikey = os.environ['NZBPO_APIKEY']
-startdir = os.environ['NZBPP_DIRECTORY'].replace('/downloads/nzbget/completed', '')
-
-finaldir = '/mnt/googledrive{0}'.format(startdir)
-
-url = '{0}/mediabrowser/Library/Media/Updated'.format(host)
+startdir = os.environ['NZBPP_DIRECTORY']
+finaldir = startdir
 
 print('[INFO] DIR: {0}'.format(finaldir))
 
-myCommand = 'find {0}/*.mp4 -exec mv -vf {{}} {1}.mp4 \\;'.format(os.environ['NZBPP_DIRECTORY'], startdir)
+myCommand = 'find {0} -iname "*.mp4" -exec mv -vf {{}} {1}.mp4 \\;'.format(
+    os.environ['NZBPP_DIRECTORY'], startdir)
 print('[INFO] CMD: {0}'.format(myCommand))
 
 os.system(myCommand)
 
-myCommand = 'find {0}/*.mkv -exec mv -vf {{}} {1}.mkv \\;'.format(os.environ['NZBPP_DIRECTORY'], startdir)
+myCommand = 'find {0} -iname "*.mkv" -exec mv -vf {{}} {1}.mkv \\;'.format(
+    os.environ['NZBPP_DIRECTORY'], startdir)
 print('[INFO] CMD: {0}'.format(myCommand))
 
 os.system(myCommand)
 
-myCommand = 'find {0}/*.avi -exec mv -vf {{}} {1}.avi \\;'.format(os.environ['NZBPP_DIRECTORY'], startdir)
+myCommand = 'find {0} -iname "*.avi" -exec mv -vf {{}} {1}.avi \\;'.format(
+    os.environ['NZBPP_DIRECTORY'], startdir)
 print('[INFO] CMD: {0}'.format(myCommand))
 
 os.system(myCommand)
 
-
-myCommand = 'find /Other/* -type d  -print -delete'
+myCommand = 'find {0} -type f -print -delete'.format(finaldir)
 print('[INFO] CMD: {0}'.format(myCommand))
 
 os.system(myCommand)
 
-os.system('/config/scripts/keepnewest.sh /EPL 5')
-os.system('/config/scripts/keepnewest.sh /Boxing 5')
+myCommand = 'find /box/other/* -type d -empty -print -delete'
+print('[INFO] CMD: {0}'.format(myCommand))
 
-data = {'Updates': [{'Path' : finaldir, 'UpdateType': 'Created'}]}
-data = json.dumps(data)
+os.system(myCommand)
+
+#os.system('/config/scripts/keepnewest.sh /EPL 5')
+#os.system('/config/scripts/keepnewest.sh /Boxing 5')
+
+data = finaldir
+# data = json.dumps(data).encode('utf-8')
+
+# data = urllib.parse.urlencode(data).encode("utf-8")
+
+url = '{0}/?dir={1}'.format(host, finaldir)
 
 try:
-    req = urllib.Request(url, data)
+   req = urllib.request.Request(url)
 
-    if apikey:
-        req.add_header('X-MediaBrowser-Token', apikey)
-        req.add_header('Content-Type', 'application/json')
+   if apikey:
+       req.add_header('X-MediaBrowser-Token', apikey)
+       req.add_header('Content-Type', 'application/json')
 
-    response = urllib.urlopen(req)
-    result = response.read()
-    response.close()
+   response = urllib.request.urlopen(req, {})
+   result = response.read()
+   response.close()
 
-    print('[INFO] HTTP: {0}'.format(url))
-    sys.exit(POSTPROCESS_SUCCESS)
+   print('[INFO] HTTP: {0}'.format(url))
+   sys.exit(POSTPROCESS_SUCCESS)
 
 except (urllib.error.URLError, IOError) as e:
-    print('[ERROR] Couldn\'t reach Emby at {0}: {1}'.format(url, e))
-    sys.exit(POSTPROCESS_ERROR)
+   print('[ERROR] Couldn\'t reach Emby at {0}: {1}'.format(url, e))
+   sys.exit(POSTPROCESS_ERROR)
+
+# sys.exit(POSTPROCESS_SUCCESS)
