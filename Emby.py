@@ -46,6 +46,7 @@ import sys
 import os
 import json
 import time
+from urllib.parse import quote
 
 time.sleep(5)
 
@@ -61,30 +62,30 @@ finaldir = startdir
 
 print('[INFO] DIR: {0}'.format(finaldir))
 
-myCommand = 'find {0} -iname "*.mp4" -exec mv -vf {{}} {1}.mp4 \\;'.format(
+myCommand = 'find "{0}" -iname "*.mp4" -exec mv -vf {{}} "{1}.mp4" \\;'.format(
     os.environ['NZBPP_DIRECTORY'], startdir)
 print('[INFO] CMD: {0}'.format(myCommand))
 
 os.system(myCommand)
 
-myCommand = 'find {0} -iname "*.mkv" -exec mv -vf {{}} {1}.mkv \\;'.format(
+myCommand = 'find "{0}" -iname "*.mkv" -exec mv -vf {{}} "{1}.mkv" \\;'.format(
     os.environ['NZBPP_DIRECTORY'], startdir)
 print('[INFO] CMD: {0}'.format(myCommand))
 
 os.system(myCommand)
 
-myCommand = 'find {0} -iname "*.avi" -exec mv -vf {{}} {1}.avi \\;'.format(
+myCommand = 'find "{0}" -iname "*.avi" -exec mv -vf {{}} "{1}.avi" \\;'.format(
     os.environ['NZBPP_DIRECTORY'], startdir)
 print('[INFO] CMD: {0}'.format(myCommand))
 
 os.system(myCommand)
 
-myCommand = 'find {0} -type f -print -delete'.format(finaldir)
+myCommand = 'find "{0}" -type f -print -delete'.format(finaldir)
 print('[INFO] CMD: {0}'.format(myCommand))
 
 os.system(myCommand)
 
-myCommand = 'find /box/other/* -type d -empty -print -delete'
+myCommand = 'find /media/other/* -type d -empty -print -delete'
 print('[INFO] CMD: {0}'.format(myCommand))
 
 os.system(myCommand)
@@ -97,7 +98,7 @@ data = finaldir
 
 # data = urllib.parse.urlencode(data).encode("utf-8")
 
-url = '{0}/?dir={1}'.format(host, finaldir)
+url = '{0}/?dir={1}'.format(host, quote(finaldir))
 
 try:
    req = urllib.request.Request(url)
